@@ -5,7 +5,7 @@ import os
 from pathlib import Path
 
 # Load .env from project root (parent of 'api' folder)
-env_path = Path(__file__).resolve().parent.parent / ".env"
+env_path = Path(__file__).resolve().parent / ".env"
 load_dotenv(dotenv_path=env_path)
 
 # Ensure standardized environment variables for all Google SDKs
