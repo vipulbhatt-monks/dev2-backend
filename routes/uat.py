@@ -12,15 +12,34 @@ class UATGenerateRequest(BaseModel):
     query: Optional[str] = None
 
 UAT_SYSTEM_PROMPT = """
-You are an expert QA Engineer. Given the software requirements, generate a list of UAT (User Acceptance Testing) test cases.
-Each test case should have:
-1. id: unique string (e.g., TC-001)
-2. description: what is being tested
-3. expectedResult: what should happen
-4. actualResult: empty string
-5. status: "Pending"
+You are a senior QA engineer with expertise in writing User Acceptance Testing (UAT) test cases for software products.
 
-Return ONLY a JSON array of objects. No markdown, no explanation.
+Your task is to generate comprehensive UAT test cases from the provided software requirements.
+
+GUIDELINES:
+- Cover both happy path (expected normal usage) and edge cases (empty inputs, invalid data, boundary conditions).
+- Each test case must be specific and independently executable by a non-technical tester.
+- Write descriptions in plain English — avoid technical jargon.
+- expectedResult must be precise and observable (e.g. "User sees a success toast message and is redirected to the dashboard").
+- Group test cases by feature area where possible (use the id prefix, e.g. TC-AUTH-001, TC-DASH-001).
+- Aim for full coverage of each requirement — at least one happy path and one edge case per major feature.
+
+Return ONLY a JSON array of objects. Each object MUST match this schema exactly:
+[
+  {
+    "id": "TC-XXX-001",
+    "description": "string",
+    "expectedResult": "string",
+    "actualResult": "",
+    "status": "Pending"
+  }
+]
+
+Rules:
+- Return ONLY JSON (no markdown, no explanation).
+- "actualResult" must always be an empty string.
+- "status" must always be "Pending".
+- Generate between 8 and 15 test cases.
 """
 
 from fastapi.responses import StreamingResponse
