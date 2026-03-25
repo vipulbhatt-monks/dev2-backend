@@ -6,8 +6,10 @@ import httpx
 import jwt
 from fastapi import HTTPException
 from dotenv import load_dotenv
+from pathlib import Path
 
-load_dotenv()
+env_path = Path(__file__).resolve().parent.parent.parent / ".env"
+load_dotenv(dotenv_path=env_path)
 
 _jwks_cache: Optional[dict[str, Any]] = None
 _jwks_cache_fetched_at: float = 0.0
@@ -30,7 +32,11 @@ async def get_jwks(*, force_refresh: bool = False) -> dict[str, Any]:
     cache_is_valid = _jwks_cache is not None and (now - _jwks_cache_fetched_at) < _JWKS_CACHE_TTL_SECONDS
 
     if force_refresh or not cache_is_valid:
-        async with httpx.AsyncClient(timeout=httpx.Timeout(10.0)) as client:
+        disable_ssl_verify = os.getenv("DISABLE_SSL_VERIFY", "false").lower() == "true"
+        async with httpx.AsyncClient(
+            timeout=httpx.Timeout(10.0),
+            verify=(not disable_ssl_verify),
+        ) as client:
             res = await client.get(jwks_url)
             res.raise_for_status()
             _jwks_cache = res.json()
