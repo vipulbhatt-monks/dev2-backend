@@ -1,6 +1,59 @@
 from typing import Any, Dict, List, Optional
 from db.session import supabase
 
+#---users---------------------------------------------------------
+
+def ensure_user(
+    *,
+    clerk_user_id: str,
+    email: Optional[str] = None,
+) -> Dict[str, Any]:
+    if not clerk_user_id:
+        raise RuntimeError("Missing clerk_user_id")
+
+    try:
+        existing = (
+            supabase.table("users")
+            .select("*")
+            .eq("id", clerk_user_id)
+            .maybe_single()
+            .execute()
+        )
+    except Exception as exc:
+        raise RuntimeError("Failed querying users table") from exc
+
+    existing_error = getattr(existing, "error", None)
+    if existing_error:
+        raise RuntimeError(f"Failed querying users table: {existing_error}")
+
+    if existing and getattr(existing, "data", None):
+        row = existing.data
+        if email is not None and row.get("email") != email:
+            updated = (
+                supabase.table("users")
+                .update({"email": email})
+                .eq("id", clerk_user_id)
+                .execute()
+            )
+            updated_error = getattr(updated, "error", None)
+            if updated_error:
+                raise RuntimeError(f"Failed updating users table: {updated_error}")
+            if updated.data:
+                return updated.data[0]
+        return row
+
+    payload: Dict[str, Any] = {"id": clerk_user_id}
+    if email is not None:
+        payload["email"] = email
+
+    inserted = supabase.table("users").insert(payload).execute()
+    inserted_error = getattr(inserted, "error", None)
+    if inserted_error:
+        raise RuntimeError(f"Failed creating user row: {inserted_error}")
+    if not inserted.data:
+        raise RuntimeError("Failed to create user")
+    return inserted.data[0]
+
 
 # ── chat_sessions ──────────────────────────────────────────────────────────────
 
