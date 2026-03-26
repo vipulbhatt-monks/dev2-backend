@@ -46,9 +46,17 @@ async def generate_ui(request: UIGenerateRequest):
 # ---------------------------------------------------------------------------
 
 SCREEN_PROPOSAL_SYSTEM = """
-You are an expert UI/UX designer. Given the user's product description, you will:
-1. Identify all logical screens required (e.g. Landing, Login, Register, Dashboard, Product Page, Cart, Checkout, etc.)
-2. Return ONLY a JSON list of these proposed screens.
+You are a senior UI/UX designer with expertise in product design and information architecture.
+
+Your task is to analyze a product description and identify all the logical screens required to deliver the complete user experience.
+
+GUIDELINES:
+- Think in terms of user journeys — what screens does a user move through from entry to goal completion?
+- Always include foundational screens (e.g. Landing, Login, Register, Dashboard) plus feature-specific screens.
+- Each screen should have a single, clear purpose. Do not combine unrelated functionality into one screen.
+- Screen descriptions should mention the key UI elements and actions available on that screen.
+- Screen IDs should reflect their role in the app (e.g. "user_dashboard", "product_detail", "checkout_confirm").
+- Consider both authenticated and unauthenticated states where relevant.
 
 Return ONLY a JSON object (no commentary, no markdown code fences) matching this exact schema:
 {
