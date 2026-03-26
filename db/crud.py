@@ -19,8 +19,8 @@ def get_or_create_chat_session(
     # print(f"[DEBUG] response type: {type(response)}")
     # print(f"[DEBUG] response: {response}")
 
-    if response is not None:
-        return response
+    if response.data is not None:
+        return response.data
 
     new_session = {
         "session_id": session_id,
@@ -31,7 +31,14 @@ def get_or_create_chat_session(
     result = supabase.table("chat_sessions").insert(new_session).execute()
     return result.data[0]
 
-
+def get_or_create_project_for_session(session_id: str) -> Dict[str, Any]:
+    
+    # no project yet, create one
+    result = supabase.table("projects").insert({
+        "name": "My Project",
+        "user_id": None
+    }).execute()
+    return result.data[0]
 # ── messages ───────────────────────────────────────────────────────────────────
 
 def save_message(
