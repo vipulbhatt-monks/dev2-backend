@@ -2,7 +2,8 @@ from typing import Any, Dict, List, Optional
 from db.crud import (
     get_or_create_chat_session,
     save_message,
-    get_messages
+    get_messages,
+    get_or_create_project_for_session
 )
 from models.requirement_models import MessagePart
 
@@ -10,13 +11,23 @@ from models.requirement_models import MessagePart
 async def initialize_session(
     session_id: str,
     session_type: str = "agent",
-    project_id: Optional[str] = None,
+    #project_id: Optional[str] = None,
     user_id: Optional[str] = None
 ) -> Dict[str, Any]:
+# only call project creation if we actually need a new session
+    existing = get_or_create_chat_session(
+        session_id=session_id,
+        session_type=session_type
+    )
+    if existing.get("project_id"):
+        return existing # returning user, project already linked
+    # new session, no project yet
+    project = get_or_create_project_for_session(session_id)
+    # backfill project_id onto the session
     return get_or_create_chat_session(
         session_id=session_id,
         session_type=session_type,
-        project_id=project_id,
+        project_id=project["id"],
         user_id=user_id
     )
 

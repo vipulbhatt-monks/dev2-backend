@@ -244,6 +244,8 @@ async def agent_chat(request: ChatRequest):
         except Exception as exc:
             print(f"[ADK] Server Error: {exc}")
             yield json.dumps({"error": str(exc)}) + "\n"
+        if full_response:
+            await persist_message(session_id, "assistant", [MessagePart(text=full_response)])
 
     return StreamingResponse(generate_agent(), media_type="application/x-ndjson")
 
