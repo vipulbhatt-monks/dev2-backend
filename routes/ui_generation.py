@@ -93,6 +93,7 @@ async def propose_screens(request: ScreenProposalRequest):
         cleaned = re.sub(r"\n?```$", "", cleaned.strip(), flags=re.MULTILINE)
         data = json.loads(cleaned)
         return JSONResponse(content=data)
+        
     except Exception as exc:
         import traceback
         traceback.print_exc()
@@ -155,7 +156,12 @@ async def generate_screens(request: ScreenGenerateRequest):
         )
         cleaned = re.sub(r"^```[\w]*\n?", "", raw.strip(), flags=re.MULTILINE)
         cleaned = re.sub(r"\n?```$", "", cleaned.strip(), flags=re.MULTILINE)
-        data = json.loads(cleaned)
+
+        # Extract just the JSON object in case AI adds extra text after it
+        match = re.search(r'\{.*\}', cleaned, re.DOTALL)
+        if not match:
+            return JSONResponse(status_code=500, content={"error": "No valid JSON found in AI response"})
+        data = json.loads(match.group())
         return JSONResponse(content=data)
     except Exception as exc:
         import traceback

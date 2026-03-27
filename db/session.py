@@ -1,6 +1,6 @@
 import os
 import httpx
-from supabase import create_client, Client
+from supabase import Client, ClientOptions, create_client
 
 
 def get_supabase_client() -> Client:
@@ -10,14 +10,13 @@ def get_supabase_client() -> Client:
     if not url or not key:
         raise RuntimeError("Missing SUPABASE_URL or SUPABASE_SERVICE_ROLE_KEY")
 
-    client = create_client(url, key)
-
-    # Fix SSL on Windows — remove this before deploying to production
+    # Corporate proxies / local MITM often use a self-signed chain; supabase-py 2.28+
+    # expects a shared httpx client when disabling verification (do not use in production).
     if os.getenv("DISABLE_SSL_VERIFY", "false").lower() == "true":
-        no_ssl_transport = httpx.HTTPTransport(verify=False)
-        client.postgrest.session._transport = no_ssl_transport
+        insecure_http = httpx.Client(verify=False)
+        return create_client(url, key, ClientOptions(httpx_client=insecure_http))
 
-    return client
+    return create_client(url, key)
 
 
 # single shared instance used across the entire app
